@@ -24,6 +24,7 @@ public class form {
         frm.setSize(350,200);
         frm.setVisible(true);
         frm.addWindowListener(new WindowAdapter(){
+            @Override
             public void windowClosing(WindowEvent e){
                 System.exit(0);
             }
@@ -35,6 +36,15 @@ public class form {
         CheckboxGroup sim = new CheckboxGroup();
         
         Checkbox dirty = new Checkbox("Dirty read", sim, true);
+        /*dirty.addActionListener(new ActionListener() {
+   
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+            // TODO Auto-generated method stub
+            Database db = new Database();
+    
+            }
+        });*/
         Checkbox unrep = new Checkbox("Unrepeatable read", sim, false);
         Checkbox phant = new Checkbox("Phantom read", sim, false);
         Checkbox deadl = new Checkbox("Deadlock", sim, false);
