@@ -10,6 +10,9 @@ package assignment2;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.Checkbox;
+import java.awt.CheckboxGroup;
+import java.awt.Choice;
 
 /**
  *
@@ -17,9 +20,7 @@ import java.awt.event.*;
  */
 public class form {
     public static void main(String[] args) {
-        Frame frm = new Frame("Form frame");
-        Label lbl = new Label("Please select the simulation and the amount of threads:");
-        frm.add(lbl);
+        Frame frm = new Frame("Select Simulation and threads");
         frm.setSize(350,200);
         frm.setVisible(true);
         frm.addWindowListener(new WindowAdapter(){
@@ -30,11 +31,31 @@ public class form {
         
         Panel p = new Panel();
         Panel p1 = new Panel();
-        Label jFirstName = new Label("First Name");
-        TextField lFirstName = new TextField(20);
-        p.setLayout(new GridLayout(1,1));
-        p.add(jFirstName);
-        p.add(lFirstName);
+        
+        CheckboxGroup sim = new CheckboxGroup();
+        
+        Checkbox dirty = new Checkbox("Dirty read", sim, true);
+        Checkbox unrep = new Checkbox("Unrepeatable read", sim, false);
+        Checkbox phant = new Checkbox("Phantom read", sim, false);
+        Checkbox deadl = new Checkbox("Deadlock", sim, false);
+        
+        Choice numChoice = new Choice();
+        for(int i=1;i<=20;i++){
+            numChoice.add(""+i+"");
+        }
+        
+        Button submit = new Button();
+        submit.setLabel("Start de simulatie");
+        
+        p.setLayout(new GridLayout(3,1));
+        
+        p.add(dirty);
+        p.add(unrep);
+        p.add(phant);
+        p.add(deadl);
+        p.add(numChoice);
+        p.add(submit);
+        
         p1.add(p);
         frm.add(p1, BorderLayout.NORTH);
     }
