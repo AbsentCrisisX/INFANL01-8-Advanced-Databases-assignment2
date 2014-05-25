@@ -9,21 +9,27 @@ public class Database {
 	// Database accountinstellingen
 	final String USER = "postgres";
 	final String PASS = "1234";
-	Connection conn = null;
-	Statement stmt = null;
+	public Connection conn = null;
+	public Statement stmt = null;
 
 	public Database() {
-		printAllProducts();
-	}
-	
-	public void printAllProducts(){
 		try {
-			Class.forName("org.postgresql.Driver");
-
 			System.out.println("Connecting to database...");
 			conn = DriverManager.getConnection(DB_URL, USER, PASS);
-
 			stmt = conn.createStatement();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			System.out.println("Connecting to database failed...");
+			e.printStackTrace();
+
+		}
+		// printAllProducts();
+		//exampleTransaction();
+	}
+
+	public void printAllProducts() {
+		try {
+
 			String sql;
 			sql = "SELECT p_id, p_name FROM products;";
 			ResultSet rs = stmt.executeQuery(sql);
@@ -63,6 +69,30 @@ public class Database {
 				se.printStackTrace();
 			}
 		}
+	}
+
+	public void exampleTransaction() {
+
+		String sql = "insert into products (mutation) values (5, '')";
+		ResultSet rs;
+		try {
+			conn.setAutoCommit(false);
+			//conn.sett
+
+			PreparedStatement transactionSql = conn.prepareStatement(sql);
+
+			transactionSql.executeUpdate();
+			conn.commit();
+
+			stmt.close();
+			conn.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			System.out.println("Database connection closed...");
+		}
+
 	}
 
 }
