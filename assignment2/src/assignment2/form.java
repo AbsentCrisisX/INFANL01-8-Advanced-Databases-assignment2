@@ -13,6 +13,7 @@ import java.awt.event.*;
 import java.awt.Checkbox;
 import java.awt.CheckboxGroup;
 import java.awt.Choice;
+import javax.swing.*;
 
 /**
  *
@@ -36,15 +37,6 @@ public class form {
         final CheckboxGroup sim = new CheckboxGroup();
         
         Checkbox dirty = new Checkbox("Dirty read", sim, true);
-        /*dirty.addActionListener(new ActionListener() {
-   
-            @Override
-            public void actionPerformed(ActionEvent arg0) {
-            // TODO Auto-generated method stub
-            Database db = new Database();
-    
-            }
-        });*/
         Checkbox unrep = new Checkbox("Unrepeatable read", sim, false);
         Checkbox phant = new Checkbox("Phantom read", sim, false);
         Checkbox deadl = new Checkbox("Deadlock", sim, false);
@@ -53,6 +45,15 @@ public class form {
         for(int i=1;i<=20;i++){
             numChoice.add(""+i+"");
         }
+        Label numChoiceLabel = new Label();
+        numChoiceLabel.setText("Threads: ");
+        
+        final Choice simNumChoice = new Choice();
+        for (int i=1; i<=20;i++){
+            simNumChoice.add(""+i+"");
+        }
+        Label simNumChoiceLabel = new Label();
+        simNumChoiceLabel.setText("Simulaties: ");
         
         Button submit = new Button();
         submit.setLabel("Start de simulatie");
@@ -62,30 +63,35 @@ public class form {
             public void actionPerformed(ActionEvent e) { 
                 switch(sim.getSelectedCheckbox().getLabel()){
                     case "Dirty read": 
-                    	Database db = new Database();
-                        System.out.println("The selected simulation is Dirty read simulation");
+                    	DirtyReadSim dirtyRead = new DirtyReadSim();
+                        dirtyRead.startSim(numChoice.getSelectedIndex()+1, simNumChoice.getSelectedIndex()+1);
                         break;
                     case "Unrepeatable read": 
-                        System.out.println("The selected simulation is Unrepeatable read simulation");
+                        UnrepeatableReadSim unrepeatRead = new UnrepeatableReadSim();
+                        unrepeatRead.startSim(numChoice.getSelectedIndex()+1, simNumChoice.getSelectedIndex()+1);
                         break;
                     case "Phantom read": 
-                        System.out.println("The selected simulation is Phantom read simulation");
+                        PhantomReadSim phantRead = new PhantomReadSim();
+                        phantRead.startSim(numChoice.getSelectedIndex()+1, simNumChoice.getSelectedIndex()+1);
                         break;
                     case "Deadlock": 
-                        System.out.println("The selected simulation is Deadlock simulation");
+                        DeadlockSim deadLock = new DeadlockSim();
+                        deadLock.startSim(numChoice.getSelectedIndex()+1, simNumChoice.getSelectedIndex()+1);
                         break;
                 }
-                System.out.println("The number of selected threads is "+numChoice.getSelectedItem().toString());
             } 
         });
         
-        p.setLayout(new GridLayout(3,1));
+        p.setLayout(new GridLayout(5,1));
         
         p.add(dirty);
         p.add(unrep);
         p.add(phant);
         p.add(deadl);
+        p.add(numChoiceLabel);
         p.add(numChoice);
+        p.add(simNumChoiceLabel);
+        p.add(simNumChoice);
         p.add(submit);
         
         p1.add(p);
