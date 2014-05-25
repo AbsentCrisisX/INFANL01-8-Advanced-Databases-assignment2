@@ -62,6 +62,7 @@ public class form {
             public void actionPerformed(ActionEvent e) { 
                 switch(sim.getSelectedCheckbox().getLabel()){
                     case "Dirty read": 
+                    	Database db = new Database();
                         System.out.println("The selected simulation is Dirty read simulation");
                         break;
                     case "Unrepeatable read": 
