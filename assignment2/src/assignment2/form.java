@@ -33,7 +33,7 @@ public class form {
         Panel p = new Panel();
         Panel p1 = new Panel();
         
-        CheckboxGroup sim = new CheckboxGroup();
+        final CheckboxGroup sim = new CheckboxGroup();
         
         Checkbox dirty = new Checkbox("Dirty read", sim, true);
         /*dirty.addActionListener(new ActionListener() {
@@ -49,13 +49,34 @@ public class form {
         Checkbox phant = new Checkbox("Phantom read", sim, false);
         Checkbox deadl = new Checkbox("Deadlock", sim, false);
         
-        Choice numChoice = new Choice();
+        final Choice numChoice = new Choice();
         for(int i=1;i<=20;i++){
             numChoice.add(""+i+"");
         }
         
         Button submit = new Button();
         submit.setLabel("Start de simulatie");
+        
+        submit.addActionListener(new ActionListener() { 
+            @Override
+            public void actionPerformed(ActionEvent e) { 
+                switch(sim.getSelectedCheckbox().getLabel()){
+                    case "Dirty read": 
+                        System.out.println("The selected simulation is Dirty read simulation");
+                        break;
+                    case "Unrepeatable read": 
+                        System.out.println("The selected simulation is Unrepeatable read simulation");
+                        break;
+                    case "Phantom read": 
+                        System.out.println("The selected simulation is Phantom read simulation");
+                        break;
+                    case "Deadlock": 
+                        System.out.println("The selected simulation is Deadlock simulation");
+                        break;
+                }
+                System.out.println("The number of selected threads is "+numChoice.getSelectedItem().toString());
+            } 
+        });
         
         p.setLayout(new GridLayout(3,1));
         
