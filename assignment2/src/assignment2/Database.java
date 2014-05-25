@@ -3,16 +3,20 @@ package assignment2;
 import java.sql.*;
 
 public class Database {
+	final String DB_NAME = "OpdrachtTwee";
+	final String DB_URL = "jdbc:postgresql://localhost:5432/" + DB_NAME;
+
+	// Database accountinstellingen
+	final String USER = "postgres";
+	final String PASS = "1234";
+	Connection conn = null;
+	Statement stmt = null;
 
 	public Database() {
-
-		final String DB_URL = "jdbc:postgresql://localhost:5432/postgres";
-
-		// Database accountinstellingen
-		final String USER = "postgres";
-		final String PASS = "1234";
-		Connection conn = null;
-		Statement stmt = null;
+		printAllProducts();
+	}
+	
+	public void printAllProducts(){
 		try {
 			Class.forName("org.postgresql.Driver");
 
@@ -21,24 +25,19 @@ public class Database {
 
 			stmt = conn.createStatement();
 			String sql;
-			sql = "SELECT p_id, products FROM products";
+			sql = "SELECT p_id, p_name FROM products;";
 			ResultSet rs = stmt.executeQuery(sql);
 
 			while (rs.next()) {
 				// Retrieve by column name
-				/*
-				 * int id = rs.getInt("id");
-				 * int age = rs.getInt("age");
-				 * String first = rs.getString("first");
-				 * String last = rs.getString("last");
-				 */
+
+				int productId = rs.getInt("p_id");
+				String productName = rs.getString("p_name");
+
 				// Display values
-				/*
-				 * System.out.print("ID: " + id);
-				 * System.out.print(", Age: " + age);
-				 * System.out.print(", First: " + first);
-				 * System.out.println(", Last: " + last);
-				 */
+				System.out.println("ID:" + productId);
+				System.out.println("NAME: " + productName);
+
 			}
 
 			rs.close();
@@ -64,7 +63,6 @@ public class Database {
 				se.printStackTrace();
 			}
 		}
-
 	}
 
 }

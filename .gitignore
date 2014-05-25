@@ -1,2 +1,5 @@
 /assignment2/nbproject/private/
 /assignment2/build/
+/bin
+.classpath
+.project
