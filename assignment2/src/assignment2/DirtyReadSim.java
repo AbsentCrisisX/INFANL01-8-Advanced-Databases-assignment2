@@ -8,24 +8,24 @@ package assignment2;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Random;
 
 /**
  * 
- * @author ACX
+ * @author ACX & Nabelz ;)
  */
 public class DirtyReadSim {
 	public int simNum = 0;
 	public int thNum = 0;
 
 	public DirtyReadSim() {
-
+		this.thNum = 4;
+		this.simNum = 4;
 	}
 
-	public void startSim(int threads, int sims) {
-		this.simNum = sims;
-		this.thNum = threads;
+	public void startSim() {
 
 		for (int i = 1; i <= thNum; i++) {
 			new Thread(new Runnable() {
@@ -36,67 +36,67 @@ public class DirtyReadSim {
 						DatabaseMy db = new DatabaseMy();
 						db.conn.setAutoCommit(false);
 						db.conn.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
-						PreparedStatement transactionSql;
+						PreparedStatement transactionA;
 
 						for (int j = 1; j <= simNum; j++) {
 
-							for (int pid = 1; pid <= 4; pid++) {
+							for (int pid = 1; pid <= 1; pid++) {
 
-								for (int i = 0; i <= 3; i++) {
-									Random rn = new Random();
-									int rnnb = rn.nextInt(10);
-									int np = rn.nextInt(2);
-									String descr = null;
-									switch (np) {
-										case 0:
-											int rnnbTemp = rnnb;
-											rnnb = (rnnbTemp - rnnb) - rnnb;
-											descr = "Sold to customer";
-											break;
-										case 1:
-											descr = "Supplied by supplier";
-											break;
-									}
-									/*
-									 * String sql =
-									 * "insert into mutations (mutation, description, p_id) values ('"
-									 * + rnnb + "', '"+ descr +"', 1);";
-									 * String sql2 =
-									 * "update stocks  SET st_amount=";
-									 */
-									System.out.println("rnnb: " + rnnb);
-									// String sql =
-									// "insert into mutations (mutation, description, p_id) values ("
-									// + rnnb
-									// + ", '"
-									// + descr
-									// + "', "
-									// + pid
-									// +
-									// "); update stocks  SET st_amount=((select st_amount from stocks where p_id="
-									// + pid +
-									// ") + (select mutation from mutations where p_id="
-									// + pid
-									// +
-									// " order by m_id desc limit 1)) where p_id="
-									// + pid + ";";
-
-									String sql = "insert into mutations (mutation, description, p_id) values (" + rnnb
-											+ ", '" + descr + "', " + pid + ");";
-									
-									
-									
-									transactionSql = db.conn.prepareStatement(sql);
-									transactionSql.executeUpdate();
+								Random rn = new Random();
+								int rnnb = rn.nextInt(10);
+								int np = rn.nextInt(2);
+								String descr = null;
+								switch (np) {
+									case 0:
+										int rnnbTemp = rnnb;
+										rnnb = (rnnbTemp - rnnb) - rnnb;
+										descr = "Sold to customer";
+										break;
+									case 1:
+										descr = "Supplied by supplier";
+										break;
 								}
+
+								String sqlReadAmount = "SELECT st_amount FROM " + db.DB_NAME + ".stocks WHERE p_id='"
+										+ pid + "' LIMIT 1;";
+								String sqlTotalAmount = "SELECT SUM(mutation) FROM " + db.DB_NAME
+										+ ".mutations WHERE p_id = " + pid + "";
+								String sqlInsertMutation = "INSERT INTO mutations (mutation, description, p_id) VALUES ('"
+										+ rnnb + "','" + descr + "', '" + pid + "')";
+
+								int stAmount = 0;
+								int totalAmount = 0;
+
+								transactionA = db.conn.prepareStatement(sqlInsertMutation);
+								transactionA.executeUpdate();
+								ResultSet rsRA = db.stmt.executeQuery(sqlReadAmount);
+
+								while (rsRA.next()) {
+									stAmount = rsRA.getInt("st_amount");
+									System.out.println("Total amount before:" + stAmount);
+								}
+								ResultSet rsTA = db.stmt.executeQuery(sqlTotalAmount);
+								while (rsTA.next()) {
+									totalAmount = rsTA.getInt("SUM(mutation)");
+									System.out.println("Total in mutations:" + totalAmount);
+								}
+
+								String sqlUpdateAmount = "UPDATE stocks SET st_amount = '" + totalAmount
+										+ "' WHERE p_id = " + pid + "";
+
+								transactionA = db.conn.prepareStatement(sqlUpdateAmount);
+								transactionA.executeUpdate();
+
+								System.out.println();
+
+								db.conn.rollback();
 							}
 						}
-						db.conn.commit();
 
 						db.stmt.close();
 						db.conn.close();
 					} catch (SQLException e) {
-						// TODO Auto-generated catch block
+
 						e.printStackTrace();
 					} finally {
 						System.out.println("Database connection closed...");
