@@ -33,7 +33,7 @@ public class DirtyReadSim {
 				@Override
 				public void run() {
 					try {
-						Database db = new Database();
+						DatabaseMy db = new DatabaseMy();
 						db.conn.setAutoCommit(false);
 						db.conn.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
 						PreparedStatement transactionSql;
@@ -65,15 +65,27 @@ public class DirtyReadSim {
 									 * "update stocks  SET st_amount=";
 									 */
 									System.out.println("rnnb: " + rnnb);
-									String sql = "insert into mutations (mutation, description, p_id) values ("
-											+ rnnb
-											+ ", '"
-											+ descr
-											+ "', "
-											+ pid
-											+ "); update stocks  SET st_amount=((select st_amount from stocks where p_id="
-											+ pid + ") + (select mutation from mutations where p_id=" + pid
-											+ " order by m_id desc limit 1)) where p_id=" + pid + ";";
+									// String sql =
+									// "insert into mutations (mutation, description, p_id) values ("
+									// + rnnb
+									// + ", '"
+									// + descr
+									// + "', "
+									// + pid
+									// +
+									// "); update stocks  SET st_amount=((select st_amount from stocks where p_id="
+									// + pid +
+									// ") + (select mutation from mutations where p_id="
+									// + pid
+									// +
+									// " order by m_id desc limit 1)) where p_id="
+									// + pid + ";";
+
+									String sql = "insert into mutations (mutation, description, p_id) values (" + rnnb
+											+ ", '" + descr + "', " + pid + ");";
+									
+									
+									
 									transactionSql = db.conn.prepareStatement(sql);
 									transactionSql.executeUpdate();
 								}
