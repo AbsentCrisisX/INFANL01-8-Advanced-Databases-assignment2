@@ -7,8 +7,6 @@
 package assignment2;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
@@ -47,7 +45,7 @@ public class DeadlockSim {
 							String insertQuery = " INSERT INTO mutations (mutation, description, p_id) VALUES (0 , 'deadlock', 1);";
 							
 							// execute the queries
-							db.stmt.executeQuery(lockQuery);
+							db.stmt.executeUpdate(lockQuery);
 							db.stmt.executeQuery(insertQuery);
 							
 							
@@ -56,7 +54,7 @@ public class DeadlockSim {
 						db.conn.close();
 						System.out.println("Database closed...");
 						} catch (SQLException e) {
-							
+							e.printStackTrace();
 						}
                         
                         
