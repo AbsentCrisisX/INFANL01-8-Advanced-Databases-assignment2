@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package assignment2;
 
 import java.sql.Connection;
@@ -17,97 +11,77 @@ import java.util.Random;
  * @author ACX & Nabelz
  */
 public class DirtyReadSim {
-	public int simNum = 0;
-	public int thNum = 0;
-
-	public DirtyReadSim() {
-		this.thNum = 4;
-		this.simNum = 4;
-	}
+	final public int SIM_MAX = 4;
+	final public int TH_MAX = 4;
 
 	public void startSim() {
 		// for each thread start a thread
-		for (int i = 1; i <= thNum; i++) {
+		for (int i = 1; i <= 1; i++) {
 			new Thread(new Runnable() {
 
 				@Override
 				public void run() {
 					try {
 						// make a new database object of mysql
-						DatabaseMy db = new DatabaseMy();
 						// set autocommit off to make transactions
-						db.conn.setAutoCommit(false);
 						// set the transaction to read uncommitted
-						db.conn.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
-						PreparedStatement transactionA;
 
-						for (int j = 1; j <= simNum; j++) {
+						DatabaseMy db = new DatabaseMy();
+						db.conn.setAutoCommit(false);
+						db.conn.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
+						PreparedStatement tranA;
+						PreparedStatement tranB;
+
+						for (int j = 1; j <= 1; j++) {
 
 							for (int pid = 1; pid <= 1; pid++) {
 
-								Random rn = new Random();
-								// rnnb gets a random number between 0 and 10
-								int rnnb = rn.nextInt(10);
-								// np means negative of positve number
-								int np = rn.nextInt(2);
+								int rnnb = new Random().nextInt(20);
+								int np = new Random().nextInt(2);
+
 								String descr = null;
 								switch (np) {
 									case 0:
-										// when np is zero make it a negative
-										// number and describe it as a sold to
-										// customer
 										int rnnbTemp = rnnb;
 										rnnb = (rnnbTemp - rnnb) - rnnb;
 										descr = "Sold to customer";
 										break;
 									case 1:
-										// else make it a supplied by a supplier
-										// description
 										descr = "Supplied by supplier";
 										break;
 								}
 
-								// sql queries to read the ammount. amount in
+								// sql queries to read the amount. amount in
 								// mutations and a insert query
-								String sqlReadAmount = "SELECT st_amount FROM " + db.DB_NAME + ".stocks WHERE p_id='"
-										+ pid + "' LIMIT 1;";
-								String sqlTotalAmount = "SELECT SUM(mutation) FROM " + db.DB_NAME
-										+ ".mutations WHERE p_id = " + pid + "";
-								String sqlInsertMutation = "INSERT INTO mutations (mutation, description, p_id) VALUES ('"
-										+ rnnb + "','" + descr + "', '" + pid + "')";
+								String sqlReadAmount = "SELECT st_amount FROM " + db.DB_NAME + ".stocks WHERE p_id='" + pid + "' LIMIT 1;";
+								String sqlInsertMutation = "UPDATE stocks SET st_amount='"+rnnb+"' WHERE p_id= '"+ pid + "';";
 
-								int stAmount = 0;
-								int totalAmount = 0;
-
-								transactionA = db.conn.prepareStatement(sqlInsertMutation);
-								transactionA.executeUpdate();
-								ResultSet rsRA = db.stmt.executeQuery(sqlReadAmount);
-
-								// display the total amount before the dirty
-								// read
-								while (rsRA.next()) {
-									stAmount = rsRA.getInt("st_amount");
-									System.out.println("Total amount before:" + stAmount);
+								System.out.println(sqlInsertMutation);
+								int readA = 0;
+								int readB = 0;
+								
+								ResultSet rs = db.stmt.executeQuery(sqlReadAmount);
+								while (rs.next()) {
+									readA = rs.getInt("st_amount");
+									System.out.println("Read A: " + readA);
 								}
 
-								// make a query to update the stock
-								String sqlUpdateAmount = "UPDATE stocks SET st_amount = '" + totalAmount
-										+ "' WHERE p_id = " + pid + "";
+								tranA = db.conn.prepareStatement(sqlInsertMutation);
+								tranA.executeUpdate();
 
-								// execute the query
-								transactionA = db.conn.prepareStatement(sqlUpdateAmount);
-								transactionA.executeUpdate();
-
-								// get the amount of mutations and see that it is a different number
-								// this simulated the dirty read
-								ResultSet rsTA = db.stmt.executeQuery(sqlTotalAmount);
-								while (rsTA.next()) {
-									totalAmount = rsTA.getInt("SUM(mutation)");
-									System.out.println("Total in mutations:" + totalAmount);
+								rs = db.stmt.executeQuery(sqlReadAmount);
+								while (rs.next()) {
+									readB = rs.getInt("st_amount");
+									System.out.println("Read B: " + readB);
 								}
 								System.out.println();
+								if(readA != readB){
+									System.out.println("DIRTY READ FOUND! READ A: " + readA + " & READ B: "+ readB);
+								}
 
+								//db.conn.commit();
 								db.conn.rollback();
+
 							}
 						}
 
@@ -120,7 +94,7 @@ public class DirtyReadSim {
 						System.out.println("Database connection closed...");
 					}
 				}
-			}, "Thread " + i).start();
+			}, "Thread number: " + i).start();
 
 		}
 
