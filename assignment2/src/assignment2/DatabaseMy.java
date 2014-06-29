@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class DatabaseMy {
-	final String DB_NAME = "opdrachttwee";
+	final public String DB_NAME = "opdrachttwee";
 	final String DB_URL = "jdbc:mysql://localhost/" + DB_NAME;
 
 	// Database accountinstellingen

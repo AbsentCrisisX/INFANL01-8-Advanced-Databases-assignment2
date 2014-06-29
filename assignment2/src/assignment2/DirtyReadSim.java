@@ -52,7 +52,7 @@ public class DirtyReadSim {
 								}
 
 								// sql queries to read the amount. amount in
-								// mutations and a insert query
+								// update stocks
 								String sqlReadAmount = "SELECT st_amount FROM " + db.DB_NAME + ".stocks WHERE p_id='" + pid + "' LIMIT 1;";
 								String sqlInsertMutation = "UPDATE stocks SET st_amount='"+rnnb+"' WHERE p_id= '"+ pid + "';";
 
@@ -60,15 +60,18 @@ public class DirtyReadSim {
 								int readA = 0;
 								int readB = 0;
 								
+								//read the data
 								ResultSet rs = db.stmt.executeQuery(sqlReadAmount);
 								while (rs.next()) {
 									readA = rs.getInt("st_amount");
 									System.out.println("Read A: " + readA);
 								}
 
+								// execute the update
 								tranA = db.conn.prepareStatement(sqlInsertMutation);
 								tranA.executeUpdate();
 
+								//read the data after a update but not the committed data
 								rs = db.stmt.executeQuery(sqlReadAmount);
 								while (rs.next()) {
 									readB = rs.getInt("st_amount");
@@ -79,7 +82,7 @@ public class DirtyReadSim {
 									System.out.println("DIRTY READ FOUND! READ A: " + readA + " & READ B: "+ readB);
 								}
 
-								//db.conn.commit();
+								// rollback
 								db.conn.rollback();
 
 							}

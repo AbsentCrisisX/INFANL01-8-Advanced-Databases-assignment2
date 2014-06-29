@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package assignment2;
 
 import java.sql.Connection;
@@ -13,113 +7,89 @@ import java.sql.SQLException;
 import java.util.Random;
 
 /**
- *
- * @author ACX
+ * 
+ * @author ACX & Nabelz
+ * 
+ * PHANTOM READS: Data getting changed in current transaction by other transactions is called Phantom Reads. 
+ * New rows can be added by other transactions, so you get different number of rows by firing same query in current transaction.
+ * 
  */
 public class PhantomReadSim {
-    
-    public PhantomReadSim(){
-        
-    }
-    
-    public void startSim(){ // The method in which all of the simulation settings are stored
-        try{
-            // Create an instance of the database class and make a connection
-            Database db = new Database();
-            db.conn.setAutoCommit(false);
-            db.conn.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
-            ResultSet rs;
-            
-            // Prepare the select query that will be used in this simulation
-            String selectQuery = "SELECT COUNT(*) FROM mutations WHERE p_id = 1";
-            
-            // Execute the select query for the first time to create a resultset to compare with
-            rs = db.stmt.executeQuery(selectQuery);
-            System.out.println(selectQuery);
-            while (rs.next()) {
-                int count = rs.getInt("count");
-                System.out.println(count + "\t");
-            }
-            System.out.println("---------------\t\t");
-            
-            // Start the first insert/update query thread
-            new Thread(new Runnable() { 
-                @Override 
-                public void run() {
-                    Database db = new Database();
-                    // Generate a random number for mutation purposes 
-                    Random rn = new Random();
-                    String descr = null;
-                    PreparedStatement transactionA;
-                    
-                    // Start the for loop, to run two different queries
-                    for(int i = 1; i<=5;i++){
-                        int rnnb = rn.nextInt(10); // Get the random mutation number
-                        int np = rn.nextInt(2); // Get a random number
-                        switch (np) { // Determine if the random number wil create a positive or a negative mutation
-                         case 0:
-                          int rnnbTemp = rnnb;
-                          rnnb = (rnnbTemp - rnnb) - rnnb;
-                          descr = "Sold to customer";
-                          break;
-                         case 1:
-                          descr = "Supplied by supplier";
-                          break;
-                        }
-                        
-                        // Prepare 3 of the 4 queries that will be used
-                        String sqlReadAmount = "SELECT st_amount FROM stocks WHERE p_id = 1 LIMIT 1;";
- 			String sqlTotalAmount = "SELECT SUM(mutation) AS total FROM mutations WHERE p_id = 1";
- 			String sqlInsertMutation = "INSERT INTO mutations (mutation, description, p_id) VALUES (" + rnnb + ",'" + descr + "', 1)";
-                        
-                        // prepare the values for determining the total stock
-        		int stAmount = 0;
- 			int totalAmount = 0;
-                        
-                        try{
-                            transactionA = db.conn.prepareStatement(sqlInsertMutation);
-                            transactionA.executeUpdate(); // Execute the insert into mutations query
-                            ResultSet rsRA = db.stmt.executeQuery(sqlReadAmount); // Get the results of the stock retriever
-                        
-                            while (rsRA.next()) {
-                                    stAmount = rsRA.getInt("st_amount"); // Save the result in a variable
-                                    System.out.println("Total amount before:" + stAmount);
-                            }
-                            ResultSet rsTA = db.stmt.executeQuery(sqlTotalAmount); // Get the results of the total mutations that have been made
-                            while (rsTA.next()) {
-                                 totalAmount = rsTA.getInt("total"); // Save the result in a variable
-                            }
 
-                            String sqlUpdateAmount = "UPDATE stocks SET st_amount = '" + totalAmount
-                                            + "' WHERE p_id = 1"; // prepare the query for updating the stock
-                            transactionA = db.conn.prepareStatement(sqlUpdateAmount);
-                            transactionA.executeUpdate(); // Run the stock update
-                            
-                            // Create the select query 
-                            String selectQuery = "SELECT COUNT(*) FROM mutations WHERE p_id = 1";
-                            
-                            // Run the query
-                            ResultSet rs = db.stmt.executeQuery(selectQuery); 
-                            while (rs.next()) {
-                                int count = rs.getInt("count");
-                                System.out.println(count + "\t");
-                            }
-                            System.out.println("---------------\t\t");
-                        } catch (SQLException e){
-                            e.printStackTrace();
-                        }
-                    }
-                } 
-            }, "Insert thread").start(); // Finish defining the thread and start the thread
+	public void startSim() { // The method in which all of the simulation
+		new Thread(new Runnable() {
 
-            
-            db.conn.commit(); // Commit the queries
-            db.stmt.close();
-            db.conn.close(); // Close the connection to the database
-        } catch(SQLException e){
-            e.printStackTrace();
-        } finally {
-            System.out.println("Database connection closed...");
-        }
-    }
+			@Override
+			public void run() {
+				try {
+					// make 2 new database connections
+					// set autocommit off to make transactions
+					// set the transaction to read committed (just in case)
+
+
+					Database dbA = new Database();
+					Database dbB = new Database();
+					dbA.conn.setAutoCommit(false);
+					dbB.conn.setAutoCommit(false);
+					dbA.conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+					dbB.conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+
+					PreparedStatement tranA;
+					PreparedStatement tranB;
+
+					int rnnb = new Random().nextInt(20);
+					int np = new Random().nextInt(2);
+
+					String descr = null;
+					switch (np) {
+						case 0:
+							int rnnbTemp = rnnb;
+							rnnb = (rnnbTemp - rnnb) - rnnb;
+							descr = "Sold to customer";
+							break;
+						case 1:
+							descr = "Supplied by supplier";
+							break;
+					}
+
+					String sqlReadAmount = "SELECT SUM(mutation) FROM mutations WHERE p_id='12';";
+					String updateAmount = "INSERT INTO mutations (mutation, description, p_id) VALUES ('" + rnnb
+							+ "', '" + descr + "', '12');";
+
+					tranA = dbA.conn.prepareStatement(sqlReadAmount);
+					ResultSet rs = tranA.executeQuery();
+					
+					int readA = 0;
+					int readB = 0;
+
+					while (rs.next()) {
+						readA =  rs.getInt("SUM");
+						System.out.println("First read: " +readA);
+					}
+
+					tranB = dbB.conn.prepareStatement(updateAmount);
+					tranB.executeUpdate();
+					dbB.conn.commit();
+
+					//All the rows in the query have the same value before and after, 
+					//but but by the update there is a row inserted 
+					//This wil change the sum
+					rs = tranA.executeQuery();
+					while (rs.next()) {
+						 readB = rs.getInt("SUM");
+						System.out.println("Second read: " + readB);
+					}
+					
+					if(readA != readB){
+						System.out.println("Phantom read detected! The sum of the two reads are not the same.");
+					}
+					dbA.conn.commit();
+
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}).start();
+
+	}
 }
